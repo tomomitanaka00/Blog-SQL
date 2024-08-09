@@ -101,11 +101,7 @@ ON
 CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.log_reg_sales_model`
 OPTIONS(model_type='logistic_reg', input_label_cols=['made_purchase']) AS
 SELECT
-  traffic_source_cat,
-  device_type_cat,
-  country_cat,
-  normalized_pageviews,
-  normalized_time_on_site,
+  *,
   IF(transactions > 0, 1, 0) AS made_purchase
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
@@ -115,11 +111,7 @@ CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.boosted_tree_sal
 OPTIONS(model_type='boosted_tree_classifier', booster_type='gbtree',
   num_parallel_tree=100, input_label_cols=['made_purchase']) AS
 SELECT
-  traffic_source_cat,
-  device_type_cat,
-  country_cat,
-  normalized_pageviews,
-  normalized_time_on_site,
+    *,
   IF(transactions > 0, 1, 0) AS made_purchase
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
@@ -128,28 +120,29 @@ FROM
 CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.xgboost_sales_model`
 OPTIONS(model_type='boosted_tree_classifier', input_label_cols=['made_purchase']) AS
 SELECT
-  traffic_source_cat,
-  device_type_cat,
-  country_cat,
-  normalized_pageviews,
-  normalized_time_on_site,
+    *,
   IF(transactions > 0, 1, 0) AS made_purchase
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
 
--- Deep Neural Network Model
+-- Deep Neural Network Model with Simplified Architecture and Feature Hashing
 CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.dnn_sales_model`
-OPTIONS(model_type='dnn_classifier', hidden_units=[128, 64, 32], input_label_cols=['made_purchase']) AS
+OPTIONS(
+    model_type='dnn_classifier',
+    hidden_units=[64, 32],  -- Reduced number of units to simplify the model
+    input_label_cols=['made_purchase'],
+    auto_class_weights=true,  -- Automatically adjust class weights
+    auto_category_hash=true  -- Enable feature hashing to reduce the number of input features
+) AS
 SELECT
-  traffic_source_cat,
-  device_type_cat,
-  country_cat,
-  normalized_pageviews,
-  normalized_time_on_site,
-  IF(transactions > 0, 1, 0) AS made_purchase
+    traffic_source_cat,
+    device_type_cat,
+    country_cat,
+    normalized_pageviews,
+    normalized_time_on_site,
+    IF(transactions > 0, 1, 0) AS made_purchase
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
-
 
 -- Evaluate the Logistic Regression Model and save the results
 CREATE OR REPLACE TABLE `predictive-behavior-analytics.Section3.log_reg_sales_model_evaluation` AS
@@ -160,11 +153,7 @@ FROM
     MODEL `predictive-behavior-analytics.Section3.log_reg_sales_model`,
     (
       SELECT
-        traffic_source_cat,
-        device_type_cat,
-        country_cat,
-        normalized_pageviews,
-        normalized_time_on_site,
+          *,
         IF(transactions > 0, 1, 0) AS made_purchase
       FROM
         `predictive-behavior-analytics.Section3.sales_prediction_data_final`
@@ -180,11 +169,7 @@ FROM
     MODEL `predictive-behavior-analytics.Section3.boosted_tree_sales_model`,
     (
       SELECT
-        traffic_source_cat,
-        device_type_cat,
-        country_cat,
-        normalized_pageviews,
-        normalized_time_on_site,
+          *,
         IF(transactions > 0, 1, 0) AS made_purchase
       FROM
         `predictive-behavior-analytics.Section3.sales_prediction_data_final`
@@ -200,11 +185,7 @@ FROM
     MODEL `predictive-behavior-analytics.Section3.xgboost_sales_model`,
     (
       SELECT
-        traffic_source_cat,
-        device_type_cat,
-        country_cat,
-        normalized_pageviews,
-        normalized_time_on_site,
+          *,
         IF(transactions > 0, 1, 0) AS made_purchase
       FROM
         `predictive-behavior-analytics.Section3.sales_prediction_data_final`
