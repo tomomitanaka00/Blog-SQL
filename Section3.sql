@@ -106,15 +106,19 @@ SELECT
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
 
--- Boosted Tree Classifier Model (Random Forest)
-CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.boosted_tree_sales_model`
-OPTIONS(model_type='boosted_tree_classifier', booster_type='gbtree',
-  num_parallel_tree=100, input_label_cols=['made_purchase']) AS
+-- Random Forest Model
+CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.random_forest_sales_model`
+OPTIONS(
+  model_type='random_forest_classifier',
+  num_trees=100,
+  input_label_cols=['made_purchase']
+) AS
 SELECT
-    *,
+  *,
   IF(transactions > 0, 1, 0) AS made_purchase
 FROM
   `predictive-behavior-analytics.Section3.sales_prediction_data_final`;
+
 
 -- XGBoost Model
 CREATE OR REPLACE MODEL `predictive-behavior-analytics.Section3.xgboost_sales_model`
@@ -160,19 +164,17 @@ FROM
     )
   );
 
--- Evaluate the Boosted Tree Classifier Model and save the results
-CREATE OR REPLACE TABLE `predictive-behavior-analytics.Section3.boosted_tree_sales_model_evaluation` AS
+-- Evaluate Random Forest Model
 SELECT
   *
 FROM
-  ML.EVALUATE(
-    MODEL `predictive-behavior-analytics.Section3.boosted_tree_sales_model`,
+  ML.EVALUATE(MODEL `predictive-behavior-analytics.Section3.random_forest_sales_model`,
     (
-      SELECT
-          *,
-        IF(transactions > 0, 1, 0) AS made_purchase
-      FROM
-        `predictive-behavior-analytics.Section3.sales_prediction_data_final`
+    SELECT
+      *,
+      IF(transactions > 0, 1, 0) AS made_purchase
+    FROM
+      `predictive-behavior-analytics.Section3.sales_prediction_data_final`
     )
   );
 
